@@ -28,7 +28,7 @@ namespace PraktikumWeek14
         DataTable dtTeamName = new DataTable();
         DataTable dtManager = new DataTable();
         DataTable dtStadium = new DataTable();
-        DataTable dtWorstDicipline = new DataTable();
+        DataTable dtWorstD = new DataTable();
         DataTable dtTopScorer = new DataTable();
         DataTable dtDgv = new DataTable();
 
@@ -37,18 +37,25 @@ namespace PraktikumWeek14
 
         private void FormTeam_Load(object sender, EventArgs e)
         {
-            sqlQuery = "select t.team_name, concat(m.manager_name, ' (', n.nation, ')'),  concat(t.home_stadium, ', ', t.city, ' (', t.capacity, ')'), concat(p.player_name, ' ', max(j.Jumlah_Goal), '(', a.Goal_penalty, ')') from team t, manager m, nationality n, player p, player p2, dmatch d, (select p.player_id, p.player_name, count(d.`type`) as 'Jumlah_Goal' from dmatch d, player p where p.player_id = d.player_id and(d.`type` = 'GO' or 'GP') group by player_id) as j, (select p.player_id, p.player_name, count(d.`type`) as 'Goal_Penalty' from player p left join dmatch d on p.player_id = d.player_id and(d.`type` = 'GP') group by player_id) as a where n.nationality_id = m.nationality_id and m.manager_id = t.manager_id and p.player_id = d.player_id and j.player_name = p.player_name and(d.`type` = 'GO' or 'GP') and t.team_id = d.team_id and a.player_id = p.player_id group by t.team_id; ";
+            sqlQuery = "select t.team_name, concat(m.manager_name, ' (', n.nation, ')'), t.team_id as 'ID Tim', concat(t.home_stadium, ', ', t.city, ' (', t.capacity, ')'), concat(p.player_name, ' ', max(j.Jumlah_Goal), '(', a.Goal_penalty, ')') from team t, manager m, nationality n, player p, player p2, dmatch d, (select p.player_id, p.player_name, count(d.`type`) as 'Jumlah_Goal' from dmatch d, player p where p.player_id = d.player_id and(d.`type` = 'GO' or 'GP') group by player_id) as j, (select p.player_id, p.player_name, count(d.`type`) as 'Goal_Penalty' from player p left join dmatch d on p.player_id = d.player_id and(d.`type` = 'GP') group by player_id) as a where n.nationality_id = m.nationality_id and m.manager_id = t.manager_id and p.player_id = d.player_id and j.player_name = p.player_name and(d.`type` = 'GO' or 'GP') and t.team_id = d.team_id and a.player_id = p.player_id group by t.team_id; ";
             sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
             sqlAdapter = new MySqlDataAdapter(sqlCommand);
             sqlAdapter.Fill(dtTeam);
             isiDataTeam(0);
 
+            //sqlQuery = "select p.player_name as `Player`, kuning.kuning2 as `Yellow Card`, merah.merah2 as Red Card from player p, (select d.player_id as `ID`, sum(if(d.type = 'CY', 1, 0)) as kuning2, sum(if(d.type = 'CY', 1, 0)) as poin from dmatch d group by 1) `kuning`, (select d.player_id , sum(if(d.type = 'CR', 1, 0)) as merah2, sum(if(d.type = 'CR', 3, 0)) as poin from dmatch d group by 1) merah where p.player_id = kuning.ID and kuning.ID = merah.ID and p.team_id = '" + dtTeam.Rows[posisiNow]["ID Tim"] + "' order by 2 desc;";
+            //sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
+            //sqlAdapter = new MySqlDataAdapter(sqlCommand);
+            //sqlAdapter.Fill(dtWorstD);
+            //lblWorstDicipline.Text = dtWorstD.Rows[posisiNow][0] + ", " + dtWorstD.Rows[posisiNow][1] + " Yellow Card and " + dtWorstD.Rows[posisiNow][2] + " Red Card";
 
             sqlQuery = "select m.match_date as 'Tanggal Pertandingan',(select t.team_name from team t where t.team_id = m.team_home) as 'Team Home',(select t.team_name from team t where t.team_id = m.team_away) as 'Team Away', if(goal_home is null or goal_away is null, 'Belum Selesai',  concat(goal_home, '-', goal_away)) as 'Hasil Akhir' from `match` m where m.team_home = 'a001' or m.team_away = 'a001' order by m.`match_date`;";
             sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
             sqlAdapter = new MySqlDataAdapter(sqlCommand);
             sqlAdapter.Fill(dtDgv);
             dgvTeam.DataSource = dtDgv;
+
+
         }
 
         public  void isiDataTeam(int Posisi)
